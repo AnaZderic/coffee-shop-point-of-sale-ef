@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CoffeeShop.PointOfSale.EntityFramework": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\Projects-gh\\CoffeeShop.PointOfSale.EntityFramework\\"
+    }
+  }
+}
