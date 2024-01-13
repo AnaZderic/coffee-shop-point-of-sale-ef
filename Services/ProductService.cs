@@ -1,14 +1,19 @@
-﻿using Spectre.Console;
+﻿using CoffeeShop.PointOfSale.EntityFramework.Controllers;
+using CoffeeShop.PointOfSale.EntityFramework.Models;
+using Spectre.Console;
 
-namespace CoffeeShop.PointOfSale.EntityFramework;
+namespace CoffeeShop.PointOfSale.EntityFramework.Services;
 
 internal class ProductService
 {
 
     internal static void InsertProduct()
     {
-        var name = AnsiConsole.Ask<string>("Product's name:");
-        ProductController.AddProduct(name);
+        var product = new Product();
+        product.Name = AnsiConsole.Ask<string>("Product's name:");
+        product.Price = AnsiConsole.Ask<decimal>("Product's price:");
+        product.CategoryId = CategoryService.GetCategoryOptionInput().Id;
+        ProductController.AddProduct(product);
     }
     internal static void DeleteProduct()
     {
@@ -31,7 +36,20 @@ internal class ProductService
     internal static void UpdateProduct()
     {
         var product = GetProductOptionInput();
-        product.Name = AnsiConsole.Ask<string>("Product's new name:");
+
+        product.Name = AnsiConsole.Confirm("Update name?")
+            ? product.Name = AnsiConsole.Ask<string>("Product's new name:")
+            : product.Name;
+
+        product.Price = AnsiConsole.Confirm("Update price?")
+            ? product.Price = AnsiConsole.Ask<decimal>("Product's new price:")
+            : product.Price;
+
+        product.Category = AnsiConsole.Confirm("Update category?")
+          ? CategoryService.GetCategoryOptionInput()
+          : product.Category;
+
+
         ProductController.UpdateProduct(product);
     }
 
@@ -42,9 +60,9 @@ internal class ProductService
         var option = AnsiConsole.Prompt(new SelectionPrompt<string>()
             .Title("Choose Product")
             .AddChoices(productsArray));
-        var id = products.Single(x => x.Name == option).Id;
+        var id = products.Single(x => x.Name == option).ProductId;
         var product = ProductController.GetProductById(id);
 
-        return product; 
+        return product;
     }
 }

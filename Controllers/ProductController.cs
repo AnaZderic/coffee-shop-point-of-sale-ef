@@ -1,13 +1,15 @@
-﻿using Spectre.Console;
+﻿using CoffeeShop.PointOfSale.EntityFramework.Models;
+using Microsoft.EntityFrameworkCore;
+using Spectre.Console;
 
-namespace CoffeeShop.PointOfSale.EntityFramework;
+namespace CoffeeShop.PointOfSale.EntityFramework.Controllers;
 
 internal class ProductController
 {
-    internal static void AddProduct(string name)
+    internal static void AddProduct(Product product)
     {
         using var db = new ProductsContext();
-        db.Add(new Product { Name = name });
+        db.Add(product);
 
         db.SaveChanges();
     }
@@ -17,24 +19,28 @@ internal class ProductController
         using var db = new ProductsContext();
         db.Remove(product);
 
-        db.SaveChanges() ;
+        db.SaveChanges();
     }
 
     internal static Product GetProductById(int id)
     {
         using var db = new ProductsContext();
-        var product = db.Products.SingleOrDefault(x => x.Id == id);
+        var product = db.Products
+            .Include(x => x.Category)
+            .SingleOrDefault(x => x.ProductId == id);
 
-        return product; 
+        return product;
     }
 
     internal static List<Product> GetProducts()
     {
         using var db = new ProductsContext();
 
-        var products = db.Products.ToList();
+        var products = db.Products
+            .Include(x => x.Category)
+            .ToList();
 
-        return products; 
+        return products;
     }
 
     internal static void UpdateProduct(Product product)
