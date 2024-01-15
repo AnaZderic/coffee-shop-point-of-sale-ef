@@ -1,4 +1,5 @@
 ﻿using CoffeeShop.PointOfSale.EntityFramework.Models;
+using CoffeeShop.PointOfSale.EntityFramework.Models.DTOs;
 using CoffeeShop.PointOfSale.EntityFramework.Services;
 using Spectre.Console;
 using static CoffeeShop.PointOfSale.EntityFramework.Enums;
@@ -20,6 +21,7 @@ static internal class UserInterface
             .AddChoices(
                 MainMenuOptions.ManageCategories,
                 MainMenuOptions.ManageProducts,
+                MainMenuOptions.ManageOrders,
                 MainMenuOptions.Quit));
 
             switch (option)
@@ -30,11 +32,14 @@ static internal class UserInterface
                 case MainMenuOptions.ManageProducts:
                     ProductsMenu();
                     break;
+                case MainMenuOptions.ManageOrders:
+                    OrdersMenu();
+                    break;
                 case MainMenuOptions.Quit:
                     Console.WriteLine("Goodbye");
                     isAppRunning = false;
                     break;
-              
+
             }
         }
 
@@ -82,7 +87,7 @@ static internal class UserInterface
         }
     }
 
-    private static void ProductsMenu()
+    static internal void ProductsMenu()
     {
         var isProductsMenuRunning = true;
         while (isProductsMenuRunning)
@@ -122,6 +127,40 @@ static internal class UserInterface
             }
         }
     }
+
+    static internal void OrdersMenu()
+    {
+        var isOrdersMenuRunning = true;
+        while (isOrdersMenuRunning)
+        {
+            Console.Clear();
+            var option = AnsiConsole.Prompt(
+                new SelectionPrompt<OrderMenu>()
+                .Title("Orders Menu")
+                .AddChoices(
+                    OrderMenu.AddOrder,
+                    OrderMenu.GetOrders,
+                    OrderMenu.GetOrder,
+                    OrderMenu.GoBack));
+
+            switch (option)
+            {
+                case OrderMenu.AddOrder:
+                    OrderService.InsertOrder();
+                    break;
+                case OrderMenu.GetOrders:
+                    OrderService.GetOrders();
+                    break;
+                case OrderMenu.GetOrder:
+                    OrderService.GetOrder();
+                    break;
+                case OrderMenu.GoBack:
+                    isOrdersMenuRunning = false;
+                    break;
+            }
+        }
+    }
+
     internal static void ShowProduct(Product product)
     {
         var panel = new Panel($@"Id: {product.ProductId}
@@ -171,7 +210,7 @@ Category: {product.Category.Name}");
         foreach (Category category in categories)
         {
             table.AddRow(
-                category.Id.ToString(),
+                category.CategoryId.ToString(),
                 category.Name
                 );
         }
@@ -185,7 +224,7 @@ Category: {product.Category.Name}");
 
     internal static void ShowCategory(Category category)
     {
-        var panel = new Panel($@"Id: {category.Id}
+        var panel = new Panel($@"Id: {category.CategoryId}
 name: {category.Name}
 Product Count: {category.Products.Count}");
         panel.Header = new PanelHeader($"{category.Name}");
@@ -196,6 +235,71 @@ Product Count: {category.Products.Count}");
         ShowProductTable(category.Products);
 
         Console.WriteLine("Press Any Key To Continue");
+        Console.ReadLine();
+        Console.Clear();
+    }
+
+    internal static void ShowOrderTable(List<Order> orders)
+    {
+        var table = new Table();
+        table.AddColumn("Id");
+        table.AddColumn("Date");
+        table.AddColumn("Count");
+        table.AddColumn("Total Price");
+
+        foreach (Order order in orders)
+        {
+            table.AddRow(
+                order.OrderId.ToString(),
+                order.CreatedDate.ToString(),
+                order.OrderProducts.Sum(x => x.Quantity).ToString(),
+                order.TotalPrice.ToString()
+                );
+        }
+
+        AnsiConsole.Write(table);
+
+        Console.WriteLine("Press any key to continue...");
+        Console.ReadLine();
+        Console.Clear();
+    }
+
+    internal static void ShowOrder(Order order)
+    {
+        var panel = new Panel($@"Id: {order.OrderId}
+Date: {order.CreatedDate}
+Product Count: {order.OrderProducts.Sum(x => x.Quantity)}");
+        panel.Header = new PanelHeader($"Order #{order.OrderId}");
+        panel.Padding = new Padding(2, 2, 2, 2);
+
+        AnsiConsole.Write(panel);
+    }
+
+    internal static void ShowProductForOrderTable(List<ProductForOrderViewDTO> products)
+    {
+        var table = new Table();
+        table.AddColumn("Id");
+        table.AddColumn("Name");
+        table.AddColumn("Category");
+        table.AddColumn("Price");
+        table.AddColumn("Quantity");
+        table.AddColumn("Total Price");
+
+        foreach (var product in products)
+        {
+            table.AddRow(
+                product.Id.ToString(),
+                product.Name,
+                product.CategoryName,
+                product.Price.ToString(),
+                product.Quantity.ToString(),
+                product.TotalPrice.ToString()
+                );
+        }
+
+        AnsiConsole.Write(table);
+
+        AnsiConsole.WriteLine("Press any key to continue...");
         Console.ReadLine();
         Console.Clear();
     }
